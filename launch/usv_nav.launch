@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<launch>
+
+    <node pkg="usv_nav" type="usv_nav_node" name="usv_auto_nav" output="screen">
+    <rosparam file="$(find usv_nav)/params/pid_params.yaml" command="load" />
+    </node>
+
+</launch>

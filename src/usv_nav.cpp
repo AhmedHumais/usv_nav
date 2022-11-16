@@ -31,8 +31,16 @@ void UsvNavNode::onInit()
     // transform_listener_ =
     //     std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-    pid_yaw = new PID(dt_, 1, -1, 1.2, 12.0, 0.0);
-    pid_x = new PID(dt_, 1, -1, 0.1, 10.0, 0.0);
+    double kp_x, kp_yaw, kd_x, kd_yaw;
+    pnh.param<double>("pid/kp_x", kp_x, 0.1);
+    pnh.param<double>("pid/kd_x", kd_x, 10.0);
+    pnh.param<double>("pid/kp_yaw", kp_yaw, 1.2);
+    pnh.param<double>("pid/kd_yaw", kd_yaw, 12.0);
+
+    std::cout << "loaded PID x Kp : " << kp_x << std::endl;
+
+    pid_x = new PID(dt_, 1, -1, kp_x, kd_x, 0.0);
+    pid_yaw = new PID(dt_, 1, -1, kp_yaw, kd_yaw, 0.0);
 
     timer_ = nh.createTimer(ros::Duration(dt_), &UsvNavNode::mainCallback, this);
 
