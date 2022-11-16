@@ -3,7 +3,7 @@
 
 
 int main(int argc, char **argv){
-  ros::init(argc, argv, "vessel_det_node");
+  ros::init(argc, argv, "usv_nav_node");
 
   nodelet::Loader nodelet;
   nodelet::M_string remap(ros::names::getRemappings());

@@ -18,13 +18,16 @@ void UsvNavNode::onInit()
     cmd_pub =  nh.advertise<std_msgs::Float32MultiArray>("/usv_cmd", 10);
 
     std::string imu_topic, odom_topic;
+    // std::cout << "registering topics" << std::endl;
     pnh.param<std::string>("imu_topic", imu_topic, "/zedm/zed_node/imu/data");    
-    pnh.param<std::string>("odom_topic", odom_topic, "/zedm/zed_node/odom ");
+    pnh.param<std::string>("odom_topic", odom_topic, "/zedm/zed_node/odom");
     imu_sub = nh.subscribe<sensor_msgs::Imu>(imu_topic, 10, &UsvNavNode::imu_callback, this);
     target_err_sub = nh.subscribe<std_msgs::Float32>("/usv/target/error", 10, &UsvNavNode::target_err_callback, this);
     target_cord_sub = nh.subscribe<geometry_msgs::Point>("/usv/target/cord", 10, &UsvNavNode::target_cord_callback, this);
     target_sub = nh.subscribe<geometry_msgs::Pose2D>("target_vessel_pose", 10, &UsvNavNode::target_callback, this);
     odom_sub = nh.subscribe<nav_msgs::Odometry>(odom_topic, 10, &UsvNavNode::odomCallback, this);
+
+    // std::cout << "registered" << std::endl;
 
     // tf_buffer_ =
     //     std::make_unique<tf2_ros::Buffer>(this->get_clock());
@@ -164,7 +167,9 @@ void UsvNavNode::publish_cmd(float yaw_normalized, float thrust_normalized){
 }
 
 void UsvNavNode::odomCallback(const nav_msgs::Odometry::ConstPtr &msg){
-    std::cout << "Odom callback called" <<std::endl;
+    if(!curr_pos_rcvd){
+        std::cout << "Odom callback called" <<std::endl;
+    }
     // auto tfs = msg->transforms;
     // bool found_tf = false;
     // for(auto tf : tfs){
