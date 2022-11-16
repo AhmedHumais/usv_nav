@@ -7,7 +7,7 @@
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="ahmed@todo.todo">ahmed</maintainer>
+  <maintainer email="m.ahmedhumais@gmail.com">Muhammad Ahmed Humais</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -74,10 +74,12 @@
   <exec_depend>tf2_geometry_msgs</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
 
+  <depend>nodelet</depend>
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
-
+    <nodelet plugin="${prefix}/usv_nav_nodelet.xml" />
   </export>
 </package>

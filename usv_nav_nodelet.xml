@@ -1,0 +1,9 @@
+<library path="libusv_nav_nodelet">
+    <class name="usv_nav/UsvNavNode"
+           type="UsvNavNode"
+           base_class_type="nodelet::Nodelet">
+        <description>
+        Nodelet for USV Navigation for MBZIRC.
+        </description>
+    </class>
+</library>
