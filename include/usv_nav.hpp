@@ -62,7 +62,7 @@ private:
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
     ros::Timer timer_;
 
-    void mainCallback();
+    void mainCallback(const ros::TimerEvent& event);
     void target_err_callback(const std_msgs::Float32 msg);
     void target_cord_callback(const geometry_msgs::Point msg);
     void target_callback(const geometry_msgs::Pose2D msg);

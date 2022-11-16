@@ -38,7 +38,7 @@ void UsvNavNode::onInit()
 
 }
 
-void UsvNavNode::mainCallback(){
+void UsvNavNode::mainCallback(const ros::TimerEvent& event){
     // get_current_pos();
     if(mode ==0){
         if(curr_pos_rcvd){
