@@ -33,6 +33,8 @@ void UsvNavNode::onInit()
     ori_sub = nh.subscribe<geometry_msgs::Point>("/slam/ori", 10, &UsvNavNode::ori_callback, this);
     yaw_rate_sub = nh.subscribe<geometry_msgs::Point>("/navio/gyro", 10, &UsvNavNode::yaw_rate_callback, this);
 
+    pd_sub = nh.subscribe<geometry_msgs::Point>("/set_pd", 2, &UsvNavNode::pd_callback, this);
+
     // std::cout << "registered" << std::endl;
 
     // tf_buffer_ =
@@ -72,8 +74,8 @@ void UsvNavNode::mainCallback(const ros::TimerEvent& event){
             }
             if(tune_pid_x){
                 if(target_loc_rcvd){
-                    auto pos_err = target_pos.x/cos(current_heading) - current_pos.x/cos(current_heading);
-                    auto vel_err = -vel.x/cos(current_heading);
+                    auto pos_err = target_pos.x - current_pos.x;
+                    auto vel_err = -vel.x;
                     publish_cmd(0, pos_err*kp_x+kd_x*vel_err);
                     return;
                 }
