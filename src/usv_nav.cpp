@@ -76,7 +76,9 @@ void UsvNavNode::mainCallback(const ros::TimerEvent& event){
                 if(target_loc_rcvd){
                     auto pos_err = target_pos.x - current_pos.x;
                     auto vel_err = -vel.x;
-                    publish_cmd(0, pos_err*kp_x+kd_x*vel_err);
+                    auto yaw_err = compute_heading_error(target_pos.theta);
+                    auto yaw_cmd = kp_yaw*yaw_err - kd_yaw*yaw_rate.z;
+                    publish_cmd(yaw_cmd, pos_err*kp_x+kd_x*vel_err);
                     return;
                 }
             }
