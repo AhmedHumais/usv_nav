@@ -47,7 +47,7 @@ void UsvNavNode::onInit()
     pnh.param<double>("pid/kd_yaw", kd_yaw, 12.0);
 
     pnh.param<bool>("tune_pid_x", tune_pid_x, false);
-    pnh.param<bool>("tune_pid_x", tune_pid_yaw, false);
+    pnh.param<bool>("tune_pid_yaw", tune_pid_yaw, false);
 
     std::cout << "loaded PID x Kp : " << kp_x << std::endl;
 
