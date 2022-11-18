@@ -66,8 +66,7 @@ private:
 
     ros::Subscriber pd_sub;
 
-    std::shared_ptr<tf2_ros::TransformListener> transform_listener_{nullptr};
-    std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+    tf2_ros::Buffer tf_Buffer;
     ros::Timer timer_;
 
     geometry_msgs::Point pos;

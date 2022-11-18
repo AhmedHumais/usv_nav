@@ -35,13 +35,6 @@ void UsvNavNode::onInit()
 
     pd_sub = nh.subscribe<geometry_msgs::Point>("/set_pd", 2, &UsvNavNode::pd_callback, this);
 
-    // std::cout << "registered" << std::endl;
-
-    // tf_buffer_ =
-    //     std::make_unique<tf2_ros::Buffer>(this->get_clock());
-    // transform_listener_ =
-    //     std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
-
     
     pnh.param<double>("pid/kp_x", kp_x, 0.1);
     pnh.param<double>("pid/kd_x", kd_x, 10.0);
@@ -56,91 +49,50 @@ void UsvNavNode::onInit()
     pid_x = new PID(dt_, 1, -1, kp_x, kd_x, 0.0);
     pid_yaw = new PID(dt_, 1, -1, kp_yaw, kd_yaw, 0.0);
 
+    tf2_ros::TransformListener tf_listener(tf_Buffer);
+
     timer_ = nh.createTimer(ros::Duration(dt_), &UsvNavNode::mainCallback, this);
 
 }
 
 void UsvNavNode::mainCallback(const ros::TimerEvent& event){
     // get_current_pos();
-    if(mode ==0){
-        if(curr_pos_rcvd){
-            if(tune_pid_yaw){
-                if(target_loc_rcvd){
-                    auto yaw_err = compute_heading_error(target_pos.theta);
-                    auto yaw_cmd = kp_yaw*yaw_err - kd_yaw*yaw_rate.z;
-                    publish_cmd(yaw_cmd, 0);
-                    return;
-                }
-            }
-            if(tune_pid_x){
-                if(target_loc_rcvd){
-                    auto pos_err = target_pos.x - current_pos.x;
-                    auto vel_err = -vel.x;
-                    auto yaw_err = compute_heading_error(target_pos.theta);
-                    auto yaw_cmd = kp_yaw*yaw_err - kd_yaw*yaw_rate.z;
-                    publish_cmd(yaw_cmd, pos_err*kp_x+kd_x*vel_err);
-                    return;
-                }
-            }
-            if(target_loc_rcvd){
-                target_heading = atan2(target_pos.y - current_pos.y, target_pos.x - current_pos.x);
-                mode =1;
-            }
-        }
-        else{
-            ROS_WARN("USV current position not received yet");
-        }
-    }
-    if(mode ==1){
-        auto heading_err = compute_heading_error(target_heading);
-        std::cout << "target pos: " << target_pos.x << ", " << target_pos.y << std::endl;
-        std::cout << "current pos: " << current_pos.x << ", " << current_pos.y << std::endl;
+    if(target_loc_rcvd){
+        geometry_msgs::PointStamped tgt_loc;
+        tgt_loc.header.frame_id = "odom";
+        tgt_loc.header.stamp = ros::Time::now();
+        tgt_loc.point.x = target_pos.x;
+        tgt_loc.point.y = target_pos.y;
+        tgt_loc.point.z = 0.0;
+        std::string to_frame = "usv";
 
-        std::cout << "current_heading: " << current_heading << ", " << "target_heading: " << target_heading << ", " << "heading_err: " << heading_err << std::endl;
-
-        if(abs(heading_err) > 0.175){
-            auto yaw_cmd = calc_yaw_cmd(heading_err);
-            std::cout << "yaw_cmd : " << yaw_cmd <<std::endl;
-            publish_cmd(yaw_cmd, 0);
+        try
+        {
+            tgt_loc = tf_Buffer.transform(tgt_loc, to_frame, ros::Duration(0.1));
+            // transformStamped = tf_Buffer.lookupTransform(to_frame, from_frame, ros::Time(0));
         }
-        else{
-            if(is_detected){
-                mode = 2;
-            }else{
-                auto target_dist_sq = (target_pos.x-current_pos.x)*(target_pos.x-current_pos.x) + (target_pos.y-current_pos.y)*(target_pos.y-current_pos.y);
-                publish_cmd(calc_yaw_cmd(heading_err), calc_x_cmd(sqrt(target_dist_sq)-0.5));
-            }
+        catch (tf2::TransformException &ex)
+        {
+            ROS_WARN("Transform from odom to usv frame not being received");
+            return;
         }
-    }
-    if(mode == 2){
-        auto time_since_detected = ros::Time::now() - last_detected;
-        auto time_since_depth = ros::Time::now() - last_depth;
-        std::cout << "time_since_detected: " << time_since_detected.toSec() << std::endl;
-        if(time_since_detected.toSec() > 0.4 || abs(target_err) > 0.35){
-            is_detected = false;
-            mode = 1;
-            publish_cmd(0,0);
-        }
-        else if(time_since_depth.toSec() < 0.3 && target_cord.x <= 30) {
-            mode = 3;
-        }
-        else{
-            publish_cmd(calc_yaw_cmd(target_err), 0.8);
-        }
-    }
-    if(mode == 3){
-        auto time_since_update = ros::Time::now() - last_depth;
-        if(time_since_update.toSec() > 0.4){
-            mode = 2;
-            publish_cmd(0,0);
+        auto x_usv = tgt_loc.point.x; auto y_usv = tgt_loc.point.y;
+        auto tgt_dist = sqrt(tgt_loc.point.x*tgt_loc.point.x + tgt_loc.point.y*tgt_loc.point.y);
+        if(tgt_dist > 10.0){
+            x_usv /= tgt_dist;
+            y_usv /= tgt_dist;
         }else{
-            publish_cmd(calc_yaw_cmd(atan2(target_cord.y, target_cord.x)), calc_x_cmd(target_cord.x - 0.8));
-            // if(target_cord.x <= 10){
-            //     publish_cmd(calc_yaw_cmd(atan2(target_cord.y, target_cord.x)), 0);
-            // }
+            x_usv *= 0.1;
+            y_usv *= 0.1;
         }
+        std::cout << "x, y errors: " << x_usv << ", " << y_usv << std::endl;
+
+        auto x_cmd = x_usv < 0? -(x_usv*x_usv) : x_usv*x_usv;
+        auto y_cmd = y_usv < 0? -(y_usv*y_usv) : y_usv*y_usv;
+
+        publish_cmd(y_cmd, x_cmd);
+
     }
-    std::cout << "current mode : " << mode << std::endl;
 
 }
 
@@ -156,7 +108,7 @@ void UsvNavNode::imu_callback(const sensor_msgs::Imu::ConstPtr &msg){
 void UsvNavNode::target_callback(const geometry_msgs::Pose2D msg){
     target_loc_rcvd = true;
     target_pos = msg;
-    target_pos.theta = current_heading + 0.5; // for tuning
+    // target_pos.theta = current_heading + 0.5; // for tuning
 }
 
 void UsvNavNode::target_err_callback(const std_msgs::Float32 msg){
