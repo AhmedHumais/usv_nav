@@ -65,11 +65,12 @@ void UsvNavNode::mainCallback(const ros::TimerEvent& event){
         tgt_loc.point.y = target_pos.y;
         tgt_loc.point.z = 0.0;
         std::string to_frame = "base_link";
+        std::string from_frame = "odom";
 
         try
         {
-            tgt_loc = tf_Buffer.transform(tgt_loc, to_frame, ros::Duration(0.15));
-            // transformStamped = tf_Buffer.lookupTransform(to_frame, from_frame, ros::Time(0));
+            // tgt_loc = tf_Buffer.transform(tgt_loc, to_frame, ros::Duration(0.15));
+            auto transformStamped = tf_Buffer.lookupTransform(to_frame, from_frame, ros::Time(0));
         }
         catch (tf2::TransformException &ex)
         {
@@ -77,6 +78,7 @@ void UsvNavNode::mainCallback(const ros::TimerEvent& event){
             ROS_WARN("Transform from odom to usv frame not being received");
             return;
         }
+        return;
         auto x_usv = tgt_loc.point.x; auto y_usv = tgt_loc.point.y;
         auto tgt_dist = sqrt(tgt_loc.point.x*tgt_loc.point.x + tgt_loc.point.y*tgt_loc.point.y);
         if(tgt_dist > 10.0){
