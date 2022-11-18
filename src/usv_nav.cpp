@@ -73,6 +73,7 @@ void UsvNavNode::mainCallback(const ros::TimerEvent& event){
         }
         catch (tf2::TransformException &ex)
         {
+            ROS_ERROR("%s",ex.what());
             ROS_WARN("Transform from odom to usv frame not being received");
             return;
         }
