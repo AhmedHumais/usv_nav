@@ -64,11 +64,11 @@ void UsvNavNode::mainCallback(const ros::TimerEvent& event){
         tgt_loc.point.x = target_pos.x;
         tgt_loc.point.y = target_pos.y;
         tgt_loc.point.z = 0.0;
-        std::string to_frame = "usv";
+        std::string to_frame = "base_link";
 
         try
         {
-            tgt_loc = tf_Buffer.transform(tgt_loc, to_frame, ros::Duration(0.1));
+            tgt_loc = tf_Buffer.transform(tgt_loc, to_frame, ros::Duration(0.15));
             // transformStamped = tf_Buffer.lookupTransform(to_frame, from_frame, ros::Time(0));
         }
         catch (tf2::TransformException &ex)
