@@ -64,8 +64,8 @@ void UsvNavNode::mainCallback(const ros::TimerEvent& event){
         tgt_loc.point.x = target_pos.x;
         tgt_loc.point.y = target_pos.y;
         tgt_loc.point.z = 0.0;
-        std::string to_frame = "base_link";
-        std::string from_frame = "odom";
+        std::string to_frame = "/base_link";
+        std::string from_frame = "/odom";
 
         try
         {
