@@ -57,43 +57,28 @@ void UsvNavNode::onInit()
 
 void UsvNavNode::mainCallback(const ros::TimerEvent& event){
     // get_current_pos();
-    if(target_loc_rcvd){
-        geometry_msgs::PointStamped tgt_loc;
-        tgt_loc.header.frame_id = "odom";
-        tgt_loc.header.stamp = ros::Time::now();
-        tgt_loc.point.x = target_pos.x;
-        tgt_loc.point.y = target_pos.y;
-        tgt_loc.point.z = 0.0;
-        std::string to_frame = "/base_link";
-        std::string from_frame = "/odom";
+    if(target_loc_rcvd && curr_pos_rcvd){
+        auto pos_x = target_pos.x - pos.x;
+        auto pos_y = target_pos.y - pos.y;
 
-        try
-        {
-            // tgt_loc = tf_Buffer.transform(tgt_loc, to_frame, ros::Duration(0.15));
-            auto transformStamped = tf_Buffer.lookupTransform(to_frame, from_frame, ros::Time(0));
-        }
-        catch (tf2::TransformException &ex)
-        {
-            ROS_ERROR("%s",ex.what());
-            ROS_WARN("Transform from odom to usv frame not being received");
-            return;
-        }
-        return;
-        auto x_usv = tgt_loc.point.x; auto y_usv = tgt_loc.point.y;
-        auto tgt_dist = sqrt(tgt_loc.point.x*tgt_loc.point.x + tgt_loc.point.y*tgt_loc.point.y);
+        auto tgt_x = pos_x*cos(ori.z) + pos_y*sin(ori.z);
+        auto tgt_y = -pos_x*sin(ori.z) + pos_y*cos(ori.z);
+        
+        auto tgt_dist = sqrt(tgt_x*tgt_x + tgt_y*tgt_y);
         if(tgt_dist > 10.0){
-            x_usv /= tgt_dist;
-            y_usv /= tgt_dist;
+            tgt_x /= tgt_dist;
+            tgt_y /= tgt_dist;
         }else{
-            x_usv *= 0.1;
-            y_usv *= 0.1;
+            tgt_x *= 0.1;
+            tgt_y *= 0.1;
         }
-        std::cout << "x, y errors: " << x_usv << ", " << y_usv << std::endl;
+        std::cout << "x, y errors: " << tgt_x << ", " << tgt_y << std::endl;
 
-        auto x_cmd = x_usv < 0? -(x_usv*x_usv) : x_usv*x_usv;
-        auto y_cmd = y_usv < 0? -(y_usv*y_usv) : y_usv*y_usv;
-
-        publish_cmd(y_cmd, x_cmd);
+        auto x_cmd = tgt_x < 0? -(tgt_x*tgt_x) : tgt_x*tgt_x;
+        auto y_cmd = tgt_y < 0? -(tgt_y*tgt_y) : tgt_y*tgt_y;
+        y_cmd = x_cmd < 0? -1*y_cmd : y_cmd;
+        /// thrust cmd should correspond to distance while yaw cmd should correspond to angle
+        publish_cmd(kp_yaw*y_cmd, kp_x*x_cmd);
 
     }
 

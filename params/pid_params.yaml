@@ -1,7 +1,7 @@
 pid:
-  kp_x: 0.11
+  kp_x: 0.5
   kd_x: 1.0
-  kp_yaw: 1.1
+  kp_yaw: 0.5
   kd_yaw: 11.0 
 
 tune_pid_x: true
