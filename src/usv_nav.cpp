@@ -81,6 +81,7 @@ void UsvNavNode::mainCallback(const ros::TimerEvent& event){
         publish_cmd(kp_yaw*y_cmd, kp_x*x_cmd);
 
     }
+    publish_cmd(0.1*target_cord.y, 0.2*target_cord.x);
 
 }
 
