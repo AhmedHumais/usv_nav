@@ -74,8 +74,8 @@ void UsvNavNode::mainCallback(const ros::TimerEvent& event){
         }
         std::cout << "x, y errors: " << tgt_x << ", " << tgt_y << std::endl;
 
-        auto x_cmd = tgt_x < 0? -(tgt_x*tgt_x) : tgt_x*tgt_x;
-        auto y_cmd = tgt_y < 0? -(tgt_y*tgt_y) : tgt_y*tgt_y;
+        auto x_cmd = tgt_x;
+        auto y_cmd = tgt_y;
         y_cmd = x_cmd < 0? -1*y_cmd : y_cmd;
         /// thrust cmd should correspond to distance while yaw cmd should correspond to angle
         publish_cmd(kp_yaw*y_cmd, kp_x*x_cmd);
