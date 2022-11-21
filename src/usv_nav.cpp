@@ -81,11 +81,11 @@ void UsvNavNode::mainCallback(const ros::TimerEvent& event){
         publish_cmd(kp_yaw*y_cmd, kp_x*x_cmd);
 
     }
-    auto dist = target_cord.x-1;
+    auto dist = target_cord.x-0.5;
     dist = dist > 6? 0.9 : dist/7.0;
     dist = dist < 0? -(dist*dist): (dist*dist);
     auto yaw_err = atan2(target_cord.y, target_cord.x);
-    publish_cmd(0.2*yaw_err, dist*1.6);
+    publish_cmd(0.3*yaw_err, dist*1.6);
 
 }
 
